@@ -110,7 +110,11 @@ app.use(async function mysqlConnection(req, res, next) {
       });
   
       if (!user) {
-        res.json('Email/password not found');
+        res.json({
+          data: null,
+          error: true,
+          msg: 'Email not found'
+        });
       }
   
       const userPassword = `${user.password}`
@@ -129,12 +133,24 @@ app.use(async function mysqlConnection(req, res, next) {
         
         const encodedUser = jwt.sign(payload, process.env.JWT_KEY);
   
-        res.json(encodedUser)
+        res.json({
+          data: encodedUser,
+          error: false,
+          msg: ''
+        })
       } else {
-        res.json('Email/password not found');
+        res.json({
+          data: null,
+          error: true,
+          msg: 'Password not found'
+          });
       }
     } catch (err) {
-      res.json ('Error logging-in')
+      res.json ({
+          data: null,
+          error: true,
+          msg: 'Error logging-in'
+        })
       console.log('Error in /auth', err)
     }
   })
@@ -174,16 +190,32 @@ app.use(async function mysqlConnection(req, res, next) {
   app.get('/emails', async function(req, res) {
     try {
       console.log('/emails success!', req.user);
-      const [emails] = await req.db.query (' SELECT * FROM emails WHERE recipient = :userEmail',
+      const [emails] = await req.db.query (
+      `SELECT
+        id,
+        sent,
+        recipient,
+        subject,
+        body,
+        time_stamp AS timeStamp
+      FROM emails WHERE recipient = :userEmail`,
       {
         userEmail: req.user.email
       }
     );
 
-      res.json(emails);
+      res.json({
+        data: emails,
+        error: false,
+        msg: ''
+      });
     } catch (err) {
       console.log('Error in /emails');
-      res.json ('Error fetching emails');      
+      res.json ({
+        data: null,
+        error: true,
+        msg: 'Error fetching emails'
+      });      
     }
   });
 
